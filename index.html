@@ -7,126 +7,153 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">
-                <h1>🌍 Worldbox</h1>
-                <p>World Simulator</p>
-            </div>
-
-            <!-- Tool Selection -->
-            <div class="tools-section">
-                <h3>Tools</h3>
-                <div class="tool-buttons">
-                    <button class="tool-btn" data-tool="pause" title="Pause/Resume">⏸️ Pause</button>
-                    <button class="tool-btn" data-tool="speed" title="Speed Control">⚡ Speed</button>
-                </div>
-                <div class="speed-control">
-                    <label for="speed">Game Speed:</label>
-                    <input type="range" id="speed" min="0.1" max="3" step="0.1" value="1">
-                    <span id="speedDisplay">1x</span>
+    <!-- Launcher Screen -->
+    <div id="launcherScreen" class="launcher-screen">
+        <div class="launcher-content">
+            <h1>🌍 Worldbox Clone</h1>
+            <p>World Simulator</p>
+            
+            <div class="launcher-section">
+                <h3>World Size</h3>
+                <div class="button-group">
+                    <button class="launcher-btn" data-size="small">Small (400x300)</button>
+                    <button class="launcher-btn selected" data-size="medium" style="background-color: #4CAF50; color: #000; border-color: #4CAF50;">Medium (1000x600)</button>
+                    <button class="launcher-btn" data-size="large">Large (1400x840)</button>
+                    <button class="launcher-btn" data-size="huge">Huge (1800x1080)</button>
                 </div>
             </div>
 
-            <!-- Brush Tools -->
-            <div class="tools-section">
-                <h3>Terrain</h3>
-                <div class="tool-grid">
-                    <button class="brush-btn selected" data-brush="grass" style="background-color: #4CAF50;" title="Grass">🌱</button>
-                    <button class="brush-btn" data-brush="dirt" style="background-color: #8B7355;" title="Dirt">🟫</button>
-                    <button class="brush-btn" data-brush="stone" style="background-color: #808080;" title="Stone">⬜</button>
-                    <button class="brush-btn" data-brush="sand" style="background-color: #F4A460;" title="Sand">🟨</button>
-                    <button class="brush-btn" data-brush="water" style="background-color: #2196F3;" title="Water">💧</button>
-                    <button class="brush-btn" data-brush="lava" style="background-color: #FF6B35;" title="Lava">🔥</button>
-                    <button class="brush-btn" data-brush="forest" style="background-color: #1B5E20;" title="Forest">🌲</button>
-                    <button class="brush-btn" data-brush="mountain" style="background-color: #4A4A4A;" title="Mountain">⛰️</button>
+            <div class="launcher-section">
+                <h3>World Shape</h3>
+                <div class="button-group">
+                    <button class="launcher-btn selected" data-shape="rectangular" style="background-color: #4CAF50; color: #000; border-color: #4CAF50;">Rectangular</button>
+                    <button class="launcher-btn" data-shape="circular">Circular</button>
+                    <button class="launcher-btn" data-shape="island">Island</button>
+                    <button class="launcher-btn" data-shape="archipelago">Archipelago</button>
                 </div>
             </div>
 
-            <!-- Creature Tools -->
-            <div class="tools-section">
-                <h3>Creatures</h3>
-                <div class="tool-grid">
-                    <button class="creature-btn" data-creature="human" title="Humans">👤</button>
-                    <button class="creature-btn" data-creature="elf" title="Elves">👳</button>
-                    <button class="creature-btn" data-creature="dwarf" title="Dwarves">🧔</button>
-                    <button class="creature-btn" data-creature="orc" title="Orcs">👹</button>
-                    <button class="creature-btn" data-creature="undead" title="Undead">💀</button>
-                </div>
-            </div>
-
-            <!-- Brush Size -->
-            <div class="tools-section">
-                <h3>Brush Size</h3>
-                <input type="range" id="brushSize" min="1" max="20" value="3">
-                <span id="brushSizeDisplay">3</span>
-            </div>
-
-            <!-- Hazards -->
-            <div class="tools-section">
-                <h3>Hazards</h3>
-                <div class="tool-grid">
-                    <button class="hazard-btn" data-hazard="meteor" title="Meteor">☄️</button>
-                    <button class="hazard-btn" data-hazard="plague" title="Plague">☠️</button>
-                    <button class="hazard-btn" data-hazard="lightning" title="Lightning">⚡</button>
-                    <button class="hazard-btn" data-hazard="volcano" title="Volcano">🌋</button>
-                </div>
-            </div>
-
-            <!-- Information Panel -->
-            <div class="tools-section">
-                <h3>World Stats</h3>
-                <div class="stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Population:</span>
-                        <span class="stat-value" id="populationCount">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Humans:</span>
-                        <span class="stat-value" id="humanCount">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Elves:</span>
-                        <span class="stat-value" id="elfCount">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Dwarves:</span>
-                        <span class="stat-value" id="dwarfCount">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Orcs:</span>
-                        <span class="stat-value" id="orcCount">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Undead:</span>
-                        <span class="stat-value" id="undeadCount">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Year:</span>
-                        <span class="stat-value" id="yearCount">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="tools-section">
-                <h3>Actions</h3>
-                <button class="action-btn" id="clearBtn">Clear World</button>
-                <button class="action-btn" id="generateBtn">Generate Terrain</button>
-                <button class="action-btn" id="resetBtn">Reset</button>
-            </div>
+            <button id="startGameBtn" class="start-btn">START GAME</button>
         </div>
+    </div>
 
-        <!-- Main Canvas Area -->
-        <div class="main-content">
-            <div class="canvas-container">
-                <canvas id="gameCanvas"></canvas>
-                <div class="crosshair"></div>
+    <!-- Game Screen -->
+    <div id="gameScreen" class="game-screen" style="display: none;">
+        <div class="container">
+            <!-- Main Canvas Area -->
+            <div class="main-content">
+                <div class="canvas-container">
+                    <canvas id="gameCanvas"></canvas>
+                    <div class="crosshair"></div>
+                </div>
+                <div class="info-bar">
+                    <span id="mouseInfo">X: 0, Y: 0</span>
+                    <span id="fpsInfo">FPS: 60</span>
+                </div>
             </div>
-            <div class="info-bar">
-                <span id="mouseInfo">X: 0, Y: 0</span>
-                <span id="fpsInfo">FPS: 60</span>
+
+            <!-- Bottom Sidebar with Tabs -->
+            <div class="bottom-sidebar">
+                <!-- Tab Navigation -->
+                <div class="tab-navigation">
+                    <button class="tab-btn active" data-tab="terrain">🌱 Terrain</button>
+                    <button class="tab-btn" data-tab="creatures">👤 Creatures</button>
+                    <button class="tab-btn" data-tab="hazards">⚡ Hazards</button>
+                    <button class="tab-btn" data-tab="stats">📊 Stats</button>
+                    <button class="tab-btn" data-tab="tools">🛠️ Tools</button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tabs-container">
+                    <!-- Terrain Tab -->
+                    <div class="tab-content active" id="terrain-tab">
+                        <div class="tab-header">🌱 Terrain Tools</div>
+                        <div class="tool-grid">
+                            <button class="brush-btn selected" data-brush="grass" title="Grass">🌱</button>
+                            <button class="brush-btn" data-brush="dirt" title="Dirt">🟫</button>
+                            <button class="brush-btn" data-brush="stone" title="Stone">⬜</button>
+                            <button class="brush-btn" data-brush="sand" title="Sand">🟨</button>
+                            <button class="brush-btn" data-brush="water" title="Water">💧</button>
+                            <button class="brush-btn" data-brush="lava" title="Lava">🔥</button>
+                            <button class="brush-btn" data-brush="forest" title="Forest">🌲</button>
+                            <button class="brush-btn" data-brush="mountain" title="Mountain">⛰️</button>
+                        </div>
+                        <div class="control-section">
+                            <label>Brush Size: <span id="brushSizeDisplay">3</span></label>
+                            <input type="range" id="brushSize" min="1" max="20" value="3">
+                        </div>
+                    </div>
+
+                    <!-- Creatures Tab -->
+                    <div class="tab-content" id="creatures-tab">
+                        <div class="tab-header">👤 Creature Tools</div>
+                        <div class="tool-grid">
+                            <button class="creature-btn" data-creature="human" title="Humans">👤</button>
+                            <button class="creature-btn" data-creature="elf" title="Elves">👳</button>
+                            <button class="creature-btn" data-creature="dwarf" title="Dwarves">🧔</button>
+                            <button class="creature-btn" data-creature="orc" title="Orcs">👹</button>
+                            <button class="creature-btn" data-creature="undead" title="Undead">💀</button>
+                            <button class="creature-btn" data-creature="wolf" title="Wolves">🐺</button>
+                            <button class="creature-btn" data-creature="bear" title="Bears">🐻</button>
+                            <button class="creature-btn" data-creature="deer" title="Deer">🦌</button>
+                            <button class="creature-btn" data-creature="eagle" title="Eagles">🦅</button>
+                            <button class="creature-btn" data-creature="fish" title="Fish">🐟</button>
+                        </div>
+                    </div>
+
+                    <!-- Hazards Tab -->
+                    <div class="tab-content" id="hazards-tab">
+                        <div class="tab-header">⚡ Hazard Tools</div>
+                        <div class="tool-grid">
+                            <button class="hazard-btn" data-hazard="meteor" title="Meteor">☄️</button>
+                            <button class="hazard-btn" data-hazard="plague" title="Plague">☠️</button>
+                            <button class="hazard-btn" data-hazard="lightning" title="Lightning">⚡</button>
+                            <button class="hazard-btn" data-hazard="volcano" title="Volcano">🌋</button>
+                            <button class="hazard-btn" data-hazard="tsunami" title="Tsunami">🌊</button>
+                            <button class="hazard-btn" data-hazard="blizzard" title="Blizzard">❄️</button>
+                            <button class="hazard-btn" data-hazard="earthquake" title="Earthquake">📍</button>
+                            <button class="hazard-btn" data-hazard="wildfire" title="Wildfire">🔥</button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Tab -->
+                    <div class="tab-content" id="stats-tab">
+                        <div class="tab-header">📊 World Statistics</div>
+                        <div class="stats-grid">
+                            <div class="stat-item"><span class="stat-label">Population:</span><span class="stat-value" id="populationCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Humans:</span><span class="stat-value" id="humanCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Elves:</span><span class="stat-value" id="elfCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Dwarves:</span><span class="stat-value" id="dwarfCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Orcs:</span><span class="stat-value" id="orcCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Undead:</span><span class="stat-value" id="undeadCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Wolves:</span><span class="stat-value" id="wolfCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Bears:</span><span class="stat-value" id="bearCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Deer:</span><span class="stat-value" id="deerCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Eagles:</span><span class="stat-value" id="eagleCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Fish:</span><span class="stat-value" id="fishCount">0</span></div>
+                            <div class="stat-item"><span class="stat-label">Year:</span><span class="stat-value" id="yearCount">0</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Tools Tab -->
+                    <div class="tab-content" id="tools-tab">
+                        <div class="tab-header">🛠️ Game Tools</div>
+                        <div class="tool-buttons">
+                            <button class="tool-btn" data-tool="pause">⏸️ Pause</button>
+                            <button class="tool-btn" id="clearBtn">🗑️ Clear</button>
+                            <button class="tool-btn" id="generateBtn">🌍 Generate</button>
+                            <button class="tool-btn" id="resetBtn">🔄 Reset</button>
+                            <button class="tool-btn" id="spriteEditorBtn">🎨 Sprite Editor</button>
+                        </div>
+                        <div class="control-section">
+                            <label>Game Speed:</label>
+                            <div class="speed-control">
+                                <input type="range" id="speed" min="0.1" max="3" step="0.1" value="1">
+                                <span id="speedDisplay">1x</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

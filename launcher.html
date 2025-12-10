@@ -231,6 +231,172 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Game Settings Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #2a2a2a;
+            margin: 10% auto;
+            padding: 30px;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            color: #4CAF50;
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .setting-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background-color: rgba(76, 175, 80, 0.2);
+            border: 2px solid #4CAF50;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .option-btn:hover {
+            background-color: rgba(76, 175, 80, 0.4);
+        }
+
+        .option-btn.selected {
+            background-color: #4CAF50;
+            color: #1a1a1a;
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .modal-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .modal-btn-play {
+            background-color: #4CAF50;
+            color: #1a1a1a;
+        }
+
+        .modal-btn-play:hover {
+            background-color: #66BB6A;
+            transform: scale(1.05);
+        }
+
+        .modal-btn-cancel {
+            background-color: #555;
+            color: #fff;
+        }
+
+        .modal-btn-cancel:hover {
+            background-color: #777;
+        }
+    </style>
+
+    <script>
+        let gameSettings = {
+            worldSize: 'medium',
+            worldShape: 'rectangular'
+        };
+
+        function openGameSettings() {
+            document.getElementById('settingsModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function selectSize(size) {
+            gameSettings.worldSize = size;
+            document.querySelectorAll('[data-size]').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.size === size);
+            });
+        }
+
+        function selectShape(shape) {
+            gameSettings.worldShape = shape;
+            document.querySelectorAll('[data-shape]').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.shape === shape);
+            });
+        }
+
+        function startGame() {
+            // Store settings in sessionStorage
+            sessionStorage.setItem('gameSettings', JSON.stringify(gameSettings));
+            window.location.href = 'index.html';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('settingsModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
     </style>
 </head>
 <body>
@@ -252,7 +418,17 @@
                 <div class="card-description">
                     Jump right into the action! Create worlds, spawn creatures, and manage civilizations.
                 </div>
-                <a href="index.html" class="card-button">Launch →</a>
+                <button class="card-button" onclick="openGameSettings()">Configure & Play →</button>
+            </div>
+
+            <!-- Sprite Editor Card -->
+            <div class="card">
+                <div class="card-icon">🎨</div>
+                <div class="card-title">Sprite Editor</div>
+                <div class="card-description">
+                    Create custom 2D pixelated sprites for creatures, terrain, and effects.
+                </div>
+                <a href="spriteEditor.html" class="card-button">Create →</a>
             </div>
 
             <!-- Quick Start Card -->
@@ -263,16 +439,6 @@
                     New to the game? Learn the basics in 5 minutes with our interactive guide.
                 </div>
                 <a href="quickstart.html" class="card-button">Learn →</a>
-            </div>
-
-            <!-- Documentation Card -->
-            <div class="card">
-                <div class="card-icon">📚</div>
-                <div class="card-title">Documentation</div>
-                <div class="card-description">
-                    Complete feature list, mechanics, and everything you need to know.
-                </div>
-                <a href="README.md" class="card-button" target="_blank">Read →</a>
             </div>
         </div>
 
@@ -286,11 +452,11 @@
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">👥</span>
-                    <span class="feature-text">5 Creature Species</span>
+                    <span class="feature-text">10 Creature Species</span>
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">⚡</span>
-                    <span class="feature-text">4 Hazard Types</span>
+                    <span class="feature-text">8 Hazard Types</span>
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">📊</span>
@@ -298,19 +464,19 @@
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">🎨</span>
-                    <span class="feature-text">Pixel Art Sprites</span>
+                    <span class="feature-text">Custom Sprite Editor</span>
                 </div>
                 <div class="feature-item">
-                    <span class="feature-icon">🎮</span>
-                    <span class="feature-text">Full Simulation</span>
+                    <span class="feature-icon">🌍</span>
+                    <span class="feature-text">Multiple World Shapes</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📐</span>
+                    <span class="feature-text">Configurable World Size</span>
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">⚙️</span>
                     <span class="feature-text">Game Speed Control</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">💾</span>
-                    <span class="feature-text">No Installation</span>
                 </div>
             </div>
         </div>
@@ -357,5 +523,54 @@
             <p>© 2025 - Free to use, modify, and distribute</p>
         </div>
     </div>
+
+    <!-- Game Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">⚙️ Game Settings</div>
+            
+            <div class="setting-group">
+                <label class="setting-label">World Size</label>
+                <div class="setting-options">
+                    <button class="option-btn selected" data-size="small" onclick="selectSize('small')">
+                        🤏 Small<br><span style="font-size: 11px;">400×300</span>
+                    </button>
+                    <button class="option-btn selected" data-size="medium" onclick="selectSize('medium')">
+                        📦 Medium<br><span style="font-size: 11px;">1000×600</span>
+                    </button>
+                    <button class="option-btn" data-size="large" onclick="selectSize('large')">
+                        🗺️ Large<br><span style="font-size: 11px;">1400×840</span>
+                    </button>
+                    <button class="option-btn" data-size="huge" onclick="selectSize('huge')">
+                        🌍 Huge<br><span style="font-size: 11px;">1800×1080</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">World Shape</label>
+                <div class="setting-options">
+                    <button class="option-btn selected" data-shape="rectangular" onclick="selectShape('rectangular')">
+                        ⬜ Rectangular
+                    </button>
+                    <button class="option-btn" data-shape="circular" onclick="selectShape('circular')">
+                        ⭕ Circular
+                    </button>
+                    <button class="option-btn" data-shape="island" onclick="selectShape('island')">
+                        🏝️ Island Chain
+                    </button>
+                    <button class="option-btn" data-shape="archipelago" onclick="selectShape('archipelago')">
+                        🌊 Archipelago
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-play" onclick="startGame()">▶️ Start Game</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">✕ Cancel</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
