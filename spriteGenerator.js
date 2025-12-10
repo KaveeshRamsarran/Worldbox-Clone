@@ -56,6 +56,20 @@ class SpriteGenerator {
         this.sprites.house = this.generateHouse();
         this.sprites.road = this.generateRoad();
         this.sprites.townhall = this.generateTownHall();
+        this.sprites.farm = this.generateFarm();
+        this.sprites.tower = this.generateTower();
+        this.sprites.castle = this.generateCastle();
+        this.sprites.market = this.generateMarket();
+        this.sprites.temple = this.generateTemple();
+
+        // Vehicle and transportation sprites
+        this.sprites.boat = this.generateBoat();
+        this.sprites.car = this.generateCar();
+
+        // Weapon sprites
+        this.sprites.sword = this.generateSword();
+        this.sprites.axe = this.generateAxe();
+        this.sprites.bow = this.generateBow();
 
         // Humanoid creature sprites
         this.sprites.human = this.generateHuman();
@@ -257,23 +271,20 @@ class SpriteGenerator {
         const canvas = this.createCanvas();
         const ctx = canvas.getContext('2d');
 
-        ctx.fillStyle = '#4A4A4A';
-        ctx.fillRect(0, 0, 16, 16);
-
-        // Mountain peak
+        // Grey mountain base
         ctx.fillStyle = '#696969';
         ctx.beginPath();
-        ctx.moveTo(8, 2);
-        ctx.lineTo(14, 10);
-        ctx.lineTo(2, 10);
+        ctx.moveTo(8, 3);
+        ctx.lineTo(14, 12);
+        ctx.lineTo(2, 12);
         ctx.fill();
 
-        // Snow peak
+        // White snow peak
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.moveTo(8, 2);
-        ctx.lineTo(10, 6);
-        ctx.lineTo(6, 6);
+        ctx.moveTo(8, 3);
+        ctx.lineTo(11, 7);
+        ctx.lineTo(5, 7);
         ctx.fill();
 
         return canvas;
@@ -281,124 +292,493 @@ class SpriteGenerator {
 
     // Building sprites
     generateHouse() {
-        const canvas = this.createCanvas();
+        const canvas = this.createCanvas(32, 32);
         const ctx = canvas.getContext('2d');
 
         // Base (foundation)
         ctx.fillStyle = '#8B7355';
-        ctx.fillRect(3, 10, 10, 6);
+        ctx.fillRect(6, 20, 20, 12);
 
         // Walls (wood)
         ctx.fillStyle = '#CD853F';
-        ctx.fillRect(3, 6, 10, 4);
+        ctx.fillRect(6, 12, 20, 8);
 
         // Door
         ctx.fillStyle = '#654321';
-        ctx.fillRect(7, 8, 2, 2);
+        ctx.fillRect(14, 16, 4, 4);
 
         // Door handle
         ctx.fillStyle = '#FFD700';
-        ctx.fillRect(8, 9, 1, 1);
+        ctx.fillRect(16, 18, 2, 2);
 
         // Windows
         ctx.fillStyle = '#87CEEB';
-        ctx.fillRect(4, 7, 2, 1);
-        ctx.fillRect(10, 7, 2, 1);
+        ctx.fillRect(8, 14, 4, 2);
+        ctx.fillRect(20, 14, 4, 2);
 
         // Roof (triangular)
         ctx.fillStyle = '#8B4513';
         ctx.beginPath();
-        ctx.moveTo(2, 6);
-        ctx.lineTo(8, 1);
-        ctx.lineTo(14, 6);
+        ctx.moveTo(4, 12);
+        ctx.lineTo(16, 2);
+        ctx.lineTo(28, 12);
         ctx.fill();
 
         // Roof peak highlight
         ctx.fillStyle = '#A0522D';
         ctx.beginPath();
-        ctx.moveTo(8, 1);
-        ctx.lineTo(6, 5);
-        ctx.lineTo(8, 4);
+        ctx.moveTo(16, 2);
+        ctx.lineTo(12, 10);
+        ctx.lineTo(16, 8);
         ctx.fill();
 
         return canvas;
     }
 
     generateRoad() {
-        const canvas = this.createCanvas();
+        const canvas = this.createCanvas(32, 32);
         const ctx = canvas.getContext('2d');
 
         // Base grass
         ctx.fillStyle = '#4CAF50';
-        ctx.fillRect(0, 0, 16, 16);
+        ctx.fillRect(0, 0, 32, 32);
 
-        // Road
-        ctx.fillStyle = '#696969';
-        ctx.fillRect(2, 6, 12, 4);
+        // Road - light brown color
+        ctx.fillStyle = '#D2B48C';
+        ctx.fillRect(4, 12, 24, 8);
 
-        // Road center line
-        ctx.fillStyle = '#FFD700';
-        ctx.fillRect(7, 7, 2, 2);
-        ctx.fillRect(3, 7, 2, 2);
-        ctx.fillRect(11, 7, 2, 2);
-
-        // Road edge detail
-        ctx.fillStyle = '#555555';
-        ctx.fillRect(2, 6, 12, 1);
-        ctx.fillRect(2, 9, 12, 1);
+        // Road edge detail - darker brown
+        ctx.fillStyle = '#A0826D';
+        ctx.fillRect(4, 12, 24, 2);
+        ctx.fillRect(4, 18, 24, 2);
 
         return canvas;
     }
 
     generateTownHall() {
-        const canvas = this.createCanvas();
+        const canvas = this.createCanvas(32, 32);
         const ctx = canvas.getContext('2d');
 
         // Base (foundation)
         ctx.fillStyle = '#696969';
-        ctx.fillRect(2, 10, 12, 6);
+        ctx.fillRect(4, 20, 24, 12);
 
         // Walls (stone)
         ctx.fillStyle = '#A9A9A9';
-        ctx.fillRect(2, 4, 12, 6);
+        ctx.fillRect(4, 8, 24, 12);
 
         // Doors (2)
         ctx.fillStyle = '#654321';
-        ctx.fillRect(5, 8, 2, 2);
-        ctx.fillRect(9, 8, 2, 2);
+        ctx.fillRect(10, 16, 4, 4);
+        ctx.fillRect(18, 16, 4, 4);
 
         // Door handles
         ctx.fillStyle = '#FFD700';
-        ctx.fillRect(6, 9, 1, 1);
-        ctx.fillRect(10, 9, 1, 1);
+        ctx.fillRect(12, 18, 2, 2);
+        ctx.fillRect(20, 18, 2, 2);
 
         // Windows (many)
         ctx.fillStyle = '#87CEEB';
-        ctx.fillRect(3, 5, 1, 1);
-        ctx.fillRect(5, 5, 1, 1);
-        ctx.fillRect(7, 5, 1, 1);
-        ctx.fillRect(9, 5, 1, 1);
-        ctx.fillRect(11, 5, 1, 1);
+        ctx.fillRect(6, 10, 2, 2);
+        ctx.fillRect(10, 10, 2, 2);
+        ctx.fillRect(14, 10, 2, 2);
+        ctx.fillRect(18, 10, 2, 2);
+        ctx.fillRect(22, 10, 2, 2);
 
         // Roof (peaked, larger)
         ctx.fillStyle = '#654321';
         ctx.beginPath();
-        ctx.moveTo(1, 4);
-        ctx.lineTo(8, 0);
-        ctx.lineTo(15, 4);
+        ctx.moveTo(2, 8);
+        ctx.lineTo(16, 0);
+        ctx.lineTo(30, 8);
         ctx.fill();
 
         // Roof accent
         ctx.fillStyle = '#8B4513';
-        ctx.fillRect(7, 1, 2, 2);
+        ctx.fillRect(14, 2, 4, 4);
 
         // Flag pole
         ctx.fillStyle = '#696969';
-        ctx.fillRect(7, 0, 2, 1);
+        ctx.fillRect(14, 0, 4, 2);
 
         // Flag
         ctx.fillStyle = '#FF0000';
-        ctx.fillRect(9, 0, 2, 1);
+        ctx.fillRect(18, 0, 4, 2);
+
+        return canvas;
+    }
+
+    generateFarm() {
+        const canvas = this.createCanvas(32, 32);
+        const ctx = canvas.getContext('2d');
+
+        // Base field (brown dirt)
+        ctx.fillStyle = '#8B6914';
+        ctx.fillRect(0, 0, 32, 32);
+
+        // Crop rows (green)
+        ctx.fillStyle = '#228B22';
+        for (let i = 0; i < 4; i++) {
+            ctx.fillRect(0, i * 8, 32, 4);
+        }
+
+        // Barn (red)
+        ctx.fillStyle = '#DC143C';
+        ctx.fillRect(4, 4, 12, 12);
+
+        // Barn roof (dark red)
+        ctx.fillStyle = '#8B0000';
+        ctx.beginPath();
+        ctx.moveTo(2, 4);
+        ctx.lineTo(10, 0);
+        ctx.lineTo(18, 4);
+        ctx.fill();
+
+        // Barn door (brown)
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(6, 7, 4, 6);
+
+        // Silo (grey cylinder)
+        ctx.fillStyle = '#A9A9A9';
+        ctx.beginPath();
+        ctx.arc(20, 10, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Silo top (cone)
+        ctx.fillStyle = '#808080';
+        ctx.beginPath();
+        ctx.moveTo(20, 4);
+        ctx.lineTo(26, 10);
+        ctx.lineTo(14, 10);
+        ctx.fill();
+
+        return canvas;
+    }
+
+    generateTower() {
+        const canvas = this.createCanvas(32, 32);
+        const ctx = canvas.getContext('2d');
+
+        // Tower base (grey stone)
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(4, 10, 24, 22);
+
+        // Tower walls (lighter grey)
+        ctx.fillStyle = '#A9A9A9';
+        ctx.fillRect(6, 12, 20, 18);
+
+        // Tower windows
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(8, 14, 3, 3);
+        ctx.fillRect(21, 14, 3, 3);
+        ctx.fillRect(8, 20, 3, 3);
+        ctx.fillRect(21, 20, 3, 3);
+
+        // Tower top (crenellations)
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(4, 8, 6, 2);
+        ctx.fillRect(14, 8, 6, 2);
+        ctx.fillRect(22, 8, 6, 2);
+
+        // Tower peak (pointed roof)
+        ctx.fillStyle = '#555555';
+        ctx.beginPath();
+        ctx.moveTo(16, 2);
+        ctx.lineTo(22, 8);
+        ctx.lineTo(10, 8);
+        ctx.fill();
+
+        // Flag
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(16, 2, 2, 3);
+
+        return canvas;
+    }
+
+    generateCastle() {
+        const canvas = this.createCanvas(32, 32);
+        const ctx = canvas.getContext('2d');
+
+        // Main castle walls
+        ctx.fillStyle = '#808080';
+        ctx.fillRect(0, 8, 32, 24);
+
+        // Main gate (arch)
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(12, 16, 8, 8);
+
+        // Gate window
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(14, 18, 4, 4);
+
+        // Left tower
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(0, 4, 8, 28);
+        ctx.fillRect(2, 2, 4, 2);
+
+        // Right tower
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(24, 4, 8, 28);
+        ctx.fillRect(26, 2, 4, 2);
+
+        // Walls and crenellations
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(0, 6, 8, 2);
+        ctx.fillRect(24, 6, 8, 2);
+
+        // Center flag
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(16, 2, 2, 4);
+        ctx.fillRect(18, 2, 2, 2);
+
+        return canvas;
+    }
+
+    generateMarket() {
+        const canvas = this.createCanvas(32, 32);
+        const ctx = canvas.getContext('2d');
+
+        // Market stalls base
+        ctx.fillStyle = '#A0522D';
+        ctx.fillRect(0, 12, 32, 20);
+
+        // Tent roofs (colorful stripes)
+        const colors = ['#FF6347', '#FFD700', '#32CD32', '#4169E1'];
+        for (let i = 0; i < 4; i++) {
+            ctx.fillStyle = colors[i];
+            ctx.beginPath();
+            ctx.moveTo(i * 8, 12);
+            ctx.lineTo(i * 8 + 4, 4);
+            ctx.lineTo(i * 8 + 8, 12);
+            ctx.fill();
+        }
+
+        // Counter
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(2, 20, 10, 6);
+        ctx.fillRect(20, 20, 10, 6);
+
+        // Goods (colorful boxes)
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(4, 18, 6, 2);
+        ctx.fillStyle = '#FF6347';
+        ctx.fillRect(22, 18, 6, 2);
+
+        return canvas;
+    }
+
+    generateTemple() {
+        const canvas = this.createCanvas(32, 32);
+        const ctx = canvas.getContext('2d');
+
+        // Temple base (light grey stone)
+        ctx.fillStyle = '#C0C0C0';
+        ctx.fillRect(2, 10, 28, 22);
+
+        // Temple entrance
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(10, 14, 12, 14);
+
+        // Temple door
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(12, 16, 8, 10);
+
+        // Door handle
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(19, 20, 1, 1);
+
+        // Temple pillars
+        ctx.fillStyle = '#A9A9A9';
+        ctx.fillRect(4, 12, 3, 18);
+        ctx.fillRect(25, 12, 3, 18);
+
+        // Temple roof (pyramid)
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.moveTo(16, 2);
+        ctx.lineTo(30, 10);
+        ctx.lineTo(2, 10);
+        ctx.fill();
+
+        // Roof decorations (holy symbols)
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(15, 6, 2, 2);
+        ctx.fillRect(14, 7, 4, 1);
+
+        return canvas;
+    }
+
+    // Vehicle and Transportation sprites
+    generateBoat() {
+        const canvas = this.createCanvas();
+        const ctx = canvas.getContext('2d');
+
+        // Hull (brown wood)
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.moveTo(3, 8);
+        ctx.lineTo(13, 8);
+        ctx.lineTo(12, 12);
+        ctx.lineTo(4, 12);
+        ctx.fill();
+
+        // Boat outline
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(3, 8);
+        ctx.lineTo(13, 8);
+        ctx.lineTo(12, 12);
+        ctx.lineTo(4, 12);
+        ctx.closePath();
+        ctx.stroke();
+
+        // Sail (white)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.moveTo(8, 3);
+        ctx.lineTo(10, 8);
+        ctx.lineTo(8, 8);
+        ctx.fill();
+
+        // Mast (grey)
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(7, 3, 2, 5);
+
+        return canvas;
+    }
+
+    generateCar() {
+        const canvas = this.createCanvas();
+        const ctx = canvas.getContext('2d');
+
+        // Car body (red)
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(2, 6, 12, 6);
+
+        // Car roof (darker red)
+        ctx.fillStyle = '#CC0000';
+        ctx.fillRect(4, 3, 8, 3);
+
+        // Windows (light blue)
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(5, 3, 3, 2);
+        ctx.fillRect(9, 3, 3, 2);
+
+        // Wheels (black)
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(4, 12, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(12, 12, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Wheel rims (grey)
+        ctx.fillStyle = '#808080';
+        ctx.beginPath();
+        ctx.arc(4, 12, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(12, 12, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        return canvas;
+    }
+
+    // Weapon sprites
+    generateSword() {
+        const canvas = this.createCanvas();
+        const ctx = canvas.getContext('2d');
+
+        // Blade (silver)
+        ctx.fillStyle = '#C0C0C0';
+        ctx.fillRect(7, 1, 2, 10);
+
+        // Blade edge highlight
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(7, 1, 1, 10);
+
+        // Crossguard (gold)
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(5, 10, 6, 1);
+
+        // Handle (brown)
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(6, 11, 4, 4);
+
+        // Pommel (gold)
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(6, 14, 4, 1);
+
+        return canvas;
+    }
+
+    generateAxe() {
+        const canvas = this.createCanvas();
+        const ctx = canvas.getContext('2d');
+
+        // Axe head (dark grey)
+        ctx.fillStyle = '#545454';
+        ctx.beginPath();
+        ctx.moveTo(4, 2);
+        ctx.lineTo(12, 2);
+        ctx.lineTo(10, 7);
+        ctx.lineTo(6, 7);
+        ctx.fill();
+
+        // Axe edge highlight
+        ctx.fillStyle = '#808080';
+        ctx.fillRect(4, 2, 2, 5);
+
+        // Handle (brown wood)
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(7, 6, 2, 9);
+
+        // Handle detail
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(7, 9, 2, 1);
+        ctx.fillRect(7, 12, 2, 1);
+
+        return canvas;
+    }
+
+    generateBow() {
+        const canvas = this.createCanvas();
+        const ctx = canvas.getContext('2d');
+
+        // Bow stave (brown wood)
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.arc(8, 8, 1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(7, 2, 2, 12);
+
+        // Bow curve (darker)
+        ctx.fillStyle = '#654321';
+        ctx.beginPath();
+        ctx.arc(8, 8, 0.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Bowstring (white)
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(8, 2);
+        ctx.quadraticCurveTo(12, 8, 8, 14);
+        ctx.stroke();
+
+        // Arrow (yellow/orange)
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(8, 7, 4, 1);
+
+        // Arrow head (silver)
+        ctx.fillStyle = '#C0C0C0';
+        ctx.beginPath();
+        ctx.moveTo(12, 7);
+        ctx.lineTo(14, 7.5);
+        ctx.lineTo(12, 8);
+        ctx.fill();
 
         return canvas;
     }

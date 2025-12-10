@@ -10,16 +10,16 @@
     <!-- Launcher Screen -->
     <div id="launcherScreen" class="launcher-screen">
         <div class="launcher-content">
-            <h1>🌍 Worldbox Clone</h1>
+            <h1>🌍 Earthplay</h1>
             <p>World Simulator</p>
             
             <div class="launcher-section">
                 <h3>World Size</h3>
                 <div class="button-group">
-                    <button class="launcher-btn" data-size="small">Small (400x300)</button>
-                    <button class="launcher-btn selected" data-size="medium" style="background-color: #4CAF50; color: #000; border-color: #4CAF50;">Medium (1000x600)</button>
-                    <button class="launcher-btn" data-size="large">Large (1400x840)</button>
-                    <button class="launcher-btn" data-size="huge">Huge (1800x1080)</button>
+                    <button class="launcher-btn" data-size="small">Small (1600x1200)</button>
+                    <button class="launcher-btn selected" data-size="medium" style="background-color: #4CAF50; color: #000; border-color: #4CAF50;">Medium (2400x1800)</button>
+                    <button class="launcher-btn" data-size="large">Large (3200x2400)</button>
+                    <button class="launcher-btn" data-size="huge">Huge (4000x3000)</button>
                 </div>
             </div>
 
@@ -58,7 +58,9 @@
                 <div class="tab-navigation">
                     <button class="tab-btn active" data-tab="terrain">🌱 Terrain</button>
                     <button class="tab-btn" data-tab="creatures">👤 Creatures</button>
-                    <button class="tab-btn" data-tab="hazards">⚡ Hazards</button>
+                    <button class="tab-btn" data-tab="civilizations">👑 Civilizations</button>
+                    <button class="tab-btn" data-tab="powers">⚡ Divine Powers</button>
+                    <button class="tab-btn" data-tab="hazards">☠️ Hazards</button>
                     <button class="tab-btn" data-tab="stats">📊 Stats</button>
                     <button class="tab-btn" data-tab="tools">🛠️ Tools</button>
                 </div>
@@ -101,9 +103,48 @@
                         </div>
                     </div>
 
+                    <!-- Civilizations Tab -->
+                    <div class="tab-content" id="civilizations-tab">
+                        <div class="tab-header">👑 Civilizations & Kingdoms</div>
+                        <div class="control-section">
+                            <h4>Active Kingdoms</h4>
+                            <div id="kingdomsList" style="max-height: 200px; overflow-y: auto;">
+                                <p style="color: #999;">No kingdoms yet. Spawn races to create civilizations!</p>
+                            </div>
+                        </div>
+                        <div class="control-section">
+                            <h4>Create Kingdom</h4>
+                            <div class="tool-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                                <button class="kingdom-btn" data-kingdom="human" title="Human Kingdom">👤</button>
+                                <button class="kingdom-btn" data-kingdom="elf" title="Elf Kingdom">👳</button>
+                                <button class="kingdom-btn" data-kingdom="dwarf" title="Dwarf Kingdom">🧔</button>
+                                <button class="kingdom-btn" data-kingdom="orc" title="Orc Kingdom">👹</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divine Powers Tab -->
+                    <div class="tab-content" id="powers-tab">
+                        <div class="tab-header">⚡ Divine Powers</div>
+                        <div class="tool-grid">
+                            <button class="power-btn" data-power="meteor" title="Meteor Strike">☄️</button>
+                            <button class="power-btn" data-power="nuke" title="Nuclear Explosion">💣</button>
+                            <button class="power-btn" data-power="dragon" title="Dragon Strike">🐉</button>
+                            <button class="power-btn" data-power="ufo" title="UFO Abduction">🛸</button>
+                            <button class="power-btn" data-power="plague" title="Plague">☠️</button>
+                            <button class="power-btn" data-power="tsunami" title="Tsunami">🌊</button>
+                            <button class="power-btn" data-power="lightning" title="Lightning Storm">⚡</button>
+                            <button class="power-btn" data-power="volcano" title="Volcano Eruption">🌋</button>
+                            <button class="power-btn" data-power="earthquake" title="Earthquake">📍</button>
+                            <button class="power-btn" data-power="wildfire" title="Wildfire">🔥</button>
+                        </div>
+                        <div class="control-section" id="powerCooldownsContainer">
+                        </div>
+                    </div>
+
                     <!-- Hazards Tab -->
                     <div class="tab-content" id="hazards-tab">
-                        <div class="tab-header">⚡ Hazard Tools</div>
+                        <div class="tab-header">☠️ Natural Hazards</div>
                         <div class="tool-grid">
                             <button class="hazard-btn" data-hazard="meteor" title="Meteor">☄️</button>
                             <button class="hazard-btn" data-hazard="plague" title="Plague">☠️</button>
@@ -143,7 +184,6 @@
                             <button class="tool-btn" id="clearBtn">🗑️ Clear</button>
                             <button class="tool-btn" id="generateBtn">🌍 Generate</button>
                             <button class="tool-btn" id="resetBtn">🔄 Reset</button>
-                            <button class="tool-btn" id="spriteEditorBtn">🎨 Sprite Editor</button>
                         </div>
                         <div class="control-section">
                             <label>Game Speed:</label>
@@ -159,6 +199,10 @@
     </div>
 
     <script src="spriteGenerator.js"></script>
+    <script src="soundManager.js"></script>
+    <script src="civilizationSystem.js"></script>
+    <script src="destructionPowerSystem.js"></script>
+    <script src="biomeSystem.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

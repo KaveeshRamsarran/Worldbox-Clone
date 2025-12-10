@@ -21,6 +21,8 @@ class WorldboxGame {
         this.creatures = [];
         this.particles = [];
         this.buildings = [];  // Array to store buildings
+        this.vehicles = [];    // Array to store vehicles (cars, boats)
+        this.weapons = [];     // Array to store weapons in the world
         
         this.isPaused = false;
         this.gameSpeed = 1;
@@ -41,6 +43,33 @@ class WorldboxGame {
         this.lastFpsTime = Date.now();
         this.fps = 0;
         
+        // Zoom and camera
+        this.zoom = 1.0;
+        this.minZoom = 0.5;
+        this.maxZoom = 3.0;
+        this.cameraX = 0;
+        this.cameraY = 0;
+        this.mouseX = 0;
+        this.mouseY = 0;
+        
+        // Animation frame counter
+        this.animationFrame = 0;
+        
+        // Sound manager
+        this.soundManager = new SoundManager();
+        
+        // Civilization system
+        this.civSystem = new CivilizationSystem();
+        this.selectedKingdom = null;
+        this.selectedCreature = null;
+        
+        // Destruction powers
+        this.destructionPowers = new DestructionPowerSystem(this);
+        this.currentPower = null;
+        
+        // Biome system
+        this.biomeSystem = new BiomeSystem();
+        
         this.initializeGrid();
         this.setupEventListeners();
         this.setupUI();
@@ -56,10 +85,10 @@ class WorldboxGame {
 
     setCanvasSize() {
         const sizes = {
-            small: { width: 400, height: 300 },
-            medium: { width: 1000, height: 600 },
-            large: { width: 1400, height: 840 },
-            huge: { width: 1800, height: 1080 }
+            small: { width: 1600, height: 1200 },
+            medium: { width: 2400, height: 1800 },
+            large: { width: 3200, height: 2400 },
+            huge: { width: 4000, height: 3000 }
         };
         
         const size = sizes[this.worldSize] || sizes.medium;
@@ -100,6 +129,9 @@ class WorldboxGame {
                 };
             }
         }
+
+        // Generate roads after terrain
+        this.generateRoads();
     }
 
     // Simple Perlin-like noise generator
@@ -134,6 +166,40 @@ class WorldboxGame {
         // Invalid tiles will be automatically filled with water in initializeGrid
     }
 
+    generateRoads() {
+        // Create pathways between different biomes - optimized
+        const roadCount = this.worldSize === 'huge' ? 3 : (this.worldSize === 'large' ? 2 : 1);
+        
+        for (let r = 0; r < roadCount; r++) {
+            // Random start and end points
+            let startX = Math.floor(Math.random() * this.gridWidth);
+            let startY = Math.floor(Math.random() * this.gridHeight);
+            let endX = Math.floor(Math.random() * this.gridWidth);
+            let endY = Math.floor(Math.random() * this.gridHeight);
+            
+            // Create path from start to end
+            let x = startX;
+            let y = startY;
+            
+            while (x !== endX || y !== endY) {
+                // Randomly step towards target
+                if (Math.random() < 0.5) {
+                    x += Math.sign(endX - x);
+                } else {
+                    y += Math.sign(endY - y);
+                }
+                
+                x = Math.max(0, Math.min(this.gridWidth - 1, x));
+                y = Math.max(0, Math.min(this.gridHeight - 1, y));
+                
+                // Place road if on valid land (not water or mountain)
+                if (this.isValidTile(x, y) && this.grid[y][x].type !== 'water' && this.grid[y][x].type !== 'mountain') {
+                    this.grid[y][x].type = 'road';
+                }
+            }
+        }
+    }
+
     setupEventListeners() {
         // Canvas interaction
         this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
@@ -142,6 +208,85 @@ class WorldboxGame {
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mouseup', () => this.isDrawing = false);
         this.canvas.addEventListener('mouseleave', () => this.isDrawing = false);
+        
+        // Zoom with mouse wheel - zoom toward cursor
+        this.canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.1;
+            const direction = e.deltaY > 0 ? -1 : 1;
+            
+            // Get mouse position relative to canvas
+            const rect = this.canvas.getBoundingClientRect();
+            const mouseCanvasX = e.clientX - rect.left;
+            const mouseCanvasY = e.clientY - rect.top;
+            
+            // Calculate old zoom
+            const oldZoom = this.zoom;
+            this.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoom + direction * zoomSpeed));
+            
+            // Adjust camera to zoom toward cursor
+            const zoomChange = this.zoom - oldZoom;
+            this.cameraX -= mouseCanvasX * (zoomChange / oldZoom);
+            this.cameraY -= mouseCanvasY * (zoomChange / oldZoom);
+        });
+        
+        // Keyboard zoom controls - zoom toward center
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '+' || e.key === '=') {
+                const oldZoom = this.zoom;
+                this.zoom = Math.min(this.maxZoom, this.zoom + 0.1);
+                const zoomChange = this.zoom - oldZoom;
+                this.cameraX -= (this.canvas.width / 2) * (zoomChange / oldZoom);
+                this.cameraY -= (this.canvas.height / 2) * (zoomChange / oldZoom);
+            } else if (e.key === '-' || e.key === '_') {
+                const oldZoom = this.zoom;
+                this.zoom = Math.max(this.minZoom, this.zoom - 0.1);
+                const zoomChange = this.zoom - oldZoom;
+                this.cameraX -= (this.canvas.width / 2) * (zoomChange / oldZoom);
+                this.cameraY -= (this.canvas.height / 2) * (zoomChange / oldZoom);
+            }
+        });
+
+        // Middle-mouse button panning
+        let isMiddleMouseDown = false;
+        let middleMouseStartX = 0;
+        let middleMouseStartY = 0;
+        let middleMouseStartCameraX = 0;
+        let middleMouseStartCameraY = 0;
+
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 1) { // Middle mouse button
+                e.preventDefault();
+                isMiddleMouseDown = true;
+                const rect = this.canvas.getBoundingClientRect();
+                middleMouseStartX = e.clientX - rect.left;
+                middleMouseStartY = e.clientY - rect.top;
+                middleMouseStartCameraX = this.cameraX;
+                middleMouseStartCameraY = this.cameraY;
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isMiddleMouseDown) {
+                const rect = this.canvas.getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+                
+                // Calculate drag distance and convert to world coordinates
+                const dragDeltaX = (middleMouseStartX - currentX) / this.zoom;
+                const dragDeltaY = (middleMouseStartY - currentY) / this.zoom;
+                
+                // Update camera position
+                this.cameraX = middleMouseStartCameraX + dragDeltaX;
+                this.cameraY = middleMouseStartCameraY + dragDeltaY;
+            }
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (e.button === 1) { // Middle mouse button
+                isMiddleMouseDown = false;
+            }
+        });
 
         // Brush selection
         document.querySelectorAll('.brush-btn').forEach(btn => {
@@ -180,7 +325,6 @@ class WorldboxGame {
         document.getElementById('clearBtn').addEventListener('click', () => this.clearWorld());
         document.getElementById('generateBtn').addEventListener('click', () => this.generateTerrain());
         document.getElementById('resetBtn').addEventListener('click', () => this.reset());
-        document.getElementById('spriteEditorBtn').addEventListener('click', () => window.open('spriteEditor.html', '_blank'));
     }
 
     setupUI() {
@@ -189,8 +333,96 @@ class WorldboxGame {
             btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
         });
         
+        // Civilization buttons
+        document.querySelectorAll('.kingdom-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.createKingdomFromUI(e.target.closest('.kingdom-btn').dataset.kingdom));
+        });
+        
+        // Divine power buttons
+        document.querySelectorAll('.power-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.selectPower(e.target.closest('.power-btn')));
+        });
+        
         // Default select grass brush
         document.querySelector('[data-brush="grass"]').classList.add('selected');
+        
+        // Update kingdoms list initially
+        this.updateKingdomsList();
+    }
+    
+    createKingdomFromUI(race) {
+        // Create a kingdom at random valid location
+        for (let attempt = 0; attempt < 10; attempt++) {
+            const x = Math.floor(Math.random() * this.gridWidth);
+            const y = Math.floor(Math.random() * this.gridHeight);
+            if (this.isValidTile(x, y)) {
+                const kingdom = this.civSystem.createKingdom(x, y, race);
+                // Spawn initial creatures
+                for (let i = 0; i < 15; i++) {
+                    this.spawnCreature(x, y, race, 1);
+                }
+                this.updateKingdomsList();
+                return;
+            }
+        }
+    }
+    
+    selectPower(btn) {
+        document.querySelectorAll('.power-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        this.currentPower = btn.dataset.power;
+        this.currentBrush = null;
+        this.currentCreature = null;
+        this.currentHazard = null;
+    }
+    
+    updateKingdomsList() {
+        const kingdomsContainer = document.getElementById('kingdomsList');
+        if (!kingdomsContainer) return;
+        
+        if (this.civSystem.kingdoms.length === 0) {
+            kingdomsContainer.innerHTML = '<p style="color: #999;">No kingdoms yet. Spawn races to create civilizations!</p>';
+            return;
+        }
+        
+        let html = '';
+        this.civSystem.kingdoms.forEach(kingdom => {
+            const raceData = this.civSystem.races[kingdom.race];
+            html += `
+                <div class="kingdom-entry" style="padding: 8px; border: 1px solid ${kingdom.color}; margin: 5px 0; cursor: pointer;" onclick="window.game.selectKingdom(${kingdom.id})">
+                    <div style="font-weight: bold; color: ${kingdom.color};">${kingdom.name}</div>
+                    <div style="font-size: 0.8em; color: #ccc;">
+                        Pop: ${kingdom.citizenCount} | Tech: ${kingdom.techLevel} | Happy: ${Math.floor(kingdom.happiness)}%
+                    </div>
+                </div>
+            `;
+        });
+        kingdomsContainer.innerHTML = html;
+    }
+    
+    selectKingdom(kingdomId) {
+        this.selectedKingdom = kingdomId;
+        const kingdom = this.civSystem.kingdoms.find(k => k.id === kingdomId);
+        if (kingdom) {
+            // Center camera on kingdom
+            this.cameraX = kingdom.centerX - this.canvas.width / (2 * this.zoom * this.tileSize);
+            this.cameraY = kingdom.centerY - this.canvas.height / (2 * this.zoom * this.tileSize);
+        }
+    }
+    
+    updatePowerCooldowns() {
+        const container = document.getElementById('powerCooldownsContainer');
+        if (!container) return;
+        
+        let html = '<div style="font-size: 0.8em;">';
+        Object.keys(this.destructionPowers.powers).forEach(powerName => {
+            const percent = this.destructionPowers.getPowerCooldownPercent(powerName);
+            const isReady = percent >= 100;
+            const color = isReady ? '#4CAF50' : '#999';
+            html += `<div style="color: ${color}; margin: 3px 0;">${this.destructionPowers.powers[powerName].emoji} ${Math.floor(percent)}%</div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
     }
 
     switchTab(tabName) {
@@ -235,6 +467,8 @@ class WorldboxGame {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+        this.mouseX = x;
+        this.mouseY = y;
 
         // Update crosshair
         document.querySelector('.crosshair').style.left = (x - 15) + 'px';
@@ -263,15 +497,23 @@ class WorldboxGame {
 
     handleCanvasClick(e) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const gridX = Math.floor(x / this.tileSize);
-        const gridY = Math.floor(y / this.tileSize);
+        const canvasX = e.clientX - rect.left;
+        const canvasY = e.clientY - rect.top;
+        
+        // Convert canvas coordinates to world coordinates accounting for zoom and camera
+        const worldX = (canvasX / this.zoom) - (this.canvas.width / (2 * this.zoom)) + this.cameraX + (this.canvas.width / (2 * this.zoom));
+        const worldY = (canvasY / this.zoom) - (this.canvas.height / (2 * this.zoom)) + this.cameraY + (this.canvas.height / (2 * this.zoom));
+        
+        const gridX = Math.floor(worldX / this.tileSize);
+        const gridY = Math.floor(worldY / this.tileSize);
 
         if (this.currentCreature) {
             this.spawnCreature(gridX, gridY, this.currentCreature, 5);
         } else if (this.currentHazard) {
             this.triggerHazard(gridX, gridY, this.currentHazard);
+        } else if (this.currentPower) {
+            this.destructionPowers.triggerPower(this.currentPower, gridX, gridY);
+            this.updatePowerCooldowns();
         }
     }
 
@@ -301,17 +543,55 @@ class WorldboxGame {
             const gridX = Math.max(0, Math.min(this.gridWidth - 1, Math.floor(x + offsetX)));
             const gridY = Math.max(0, Math.min(this.gridHeight - 1, Math.floor(y + offsetY)));
 
-            this.creatures.push({
-                x: gridX,
-                y: gridY,
-                type: type,
-                age: 0,
-                energy: 100,
-                speed: Math.random() * 0.1 + 0.05,
-                direction: Math.random() * Math.PI * 2,
-                health: 100
-            });
+            // Use enhanced creature creation with traits and genetics
+            const creature = this.civSystem.createCreatureWithTraits(gridX, gridY, type, []);
+            if (creature) {
+                this.creatures.push(creature);
+                
+                // Assign to kingdom if civilized race
+                const raceData = this.civSystem.races[type];
+                if (raceData && raceData.isCivilized !== false) {
+                    // Find or create kingdom
+                    let kingdom = this.civSystem.kingdoms.find(k => k.race === type && 
+                        Math.hypot(k.centerX - gridX, k.centerY - gridY) < 50);
+                    
+                    if (!kingdom) {
+                        kingdom = this.civSystem.createKingdom(gridX, gridY, type);
+                    }
+                    
+                    if (kingdom) {
+                        this.civSystem.assignCreatureToKingdom(creature, kingdom);
+                    }
+                }
+            }
         }
+    }
+
+    spawnWeapon(x, y, weaponType = 'sword') {
+        const gridX = Math.max(0, Math.min(this.gridWidth - 1, Math.floor(x)));
+        const gridY = Math.max(0, Math.min(this.gridHeight - 1, Math.floor(y)));
+
+        this.weapons.push({
+            x: gridX,
+            y: gridY,
+            type: weaponType,
+            age: 0
+        });
+    }
+
+    spawnVehicle(x, y, vehicleType = 'car') {
+        const gridX = Math.max(0, Math.min(this.gridWidth - 1, Math.floor(x)));
+        const gridY = Math.max(0, Math.min(this.gridHeight - 1, Math.floor(y)));
+
+        this.vehicles.push({
+            x: gridX,
+            y: gridY,
+            type: vehicleType,
+            direction: Math.random() * Math.PI * 2,
+            speed: 0.15,
+            health: 200,
+            passengers: []  // Can hold creatures
+        });
     }
 
     constructBuilding(x, y, buildingType, ownerRace = 'human') {
@@ -339,15 +619,27 @@ class WorldboxGame {
             population: 0  // For houses
         };
 
-        // Building effects
+        // Building effects - DON'T change tile type (avoid duplication)
         if (buildingType === 'house') {
             building.maxPopulation = 8;
             building.population = 3;
-            tile.type = 'house';
         } else if (buildingType === 'townhall') {
-            tile.type = 'townhall';
+            building.maxPopulation = 50;
+            building.population = 10;
+        } else if (buildingType === 'farm') {
+            building.production = 100;
+        } else if (buildingType === 'tower') {
+            building.defense = 50;
+        } else if (buildingType === 'castle') {
+            building.maxPopulation = 200;
+            building.population = 50;
+            building.defense = 100;
+        } else if (buildingType === 'market') {
+            building.commerce = 75;
+        } else if (buildingType === 'temple') {
+            building.morale = 50;
         } else if (buildingType === 'road') {
-            tile.type = 'road';
+            // Road specific logic
         }
 
         this.buildings.push(building);
@@ -355,7 +647,7 @@ class WorldboxGame {
 
     // Humanoid creatures randomly build around them
     updateBuildings() {
-        // Humanoids occasionally build structures
+        // Humanoids occasionally build structures - more variety
         for (let humanoid of this.creatures) {
             const race = humanoid.type;
             if (['human', 'elf', 'dwarf', 'orc', 'undead'].includes(race) && Math.random() < 0.0001) {
@@ -364,7 +656,17 @@ class WorldboxGame {
                 const buildX = humanoid.x + (Math.random() - 0.5) * buildRadius * 2;
                 const buildY = humanoid.y + (Math.random() - 0.5) * buildRadius * 2;
 
-                const buildType = Math.random() < 0.7 ? 'house' : (Math.random() < 0.8 ? 'road' : 'townhall');
+                // Random building type with proper distribution
+                const rand = Math.random();
+                let buildType = 'house';
+                if (rand < 0.4) buildType = 'house';
+                else if (rand < 0.6) buildType = 'road';
+                else if (rand < 0.75) buildType = 'farm';
+                else if (rand < 0.85) buildType = 'townhall';
+                else if (rand < 0.92) buildType = 'tower';
+                else if (rand < 0.96) buildType = 'market';
+                else buildType = 'temple';
+
                 this.constructBuilding(buildX, buildY, buildType, race);
             }
         }
@@ -372,6 +674,11 @@ class WorldboxGame {
 
     triggerHazard(x, y, hazard) {
         const radius = 10;
+
+        // Play hazard sound if zoomed in
+        if (this.zoom >= 1.5) {
+            this.soundManager.playHazardSound(this.zoom, hazard);
+        }
 
         switch (hazard) {
             case 'meteor':
@@ -654,32 +961,50 @@ class WorldboxGame {
             }
         }
 
-        // Spawn initial humanoid creatures
+        // Spawn initial humanoid creatures - balanced for performance
         const humanoidTypes = ['human', 'elf', 'dwarf', 'orc'];
         humanoidTypes.forEach(type => {
-            for (let i = 0; i < 3; i++) {
-                const x = Math.floor(Math.random() * this.gridWidth);
-                const y = Math.floor(Math.random() * this.gridHeight);
-                if (this.grid[y][x].isValidTile) {
-                    this.spawnCreature(x, y, type, 2);
+            const count = this.worldSize === 'huge' ? 4 : (this.worldSize === 'large' ? 3 : 2);
+            for (let i = 0; i < count; i++) {
+                let x, y, found = false;
+                for (let attempts = 0; attempts < 10; attempts++) {
+                    x = Math.floor(Math.random() * this.gridWidth);
+                    y = Math.floor(Math.random() * this.gridHeight);
+                    const tile = this.grid[y][x];
+                    if (tile.isValidTile && tile.type !== 'water' && tile.type !== 'mountain') {
+                        found = true;
+                        break;
+                    }
                 }
+                if (found) this.spawnCreature(x, y, type, 2);
             }
         });
 
-        // Spawn initial animals
+        // Spawn initial animals - balanced for performance
         const animalTypes = ['wolf', 'bear', 'deer', 'eagle'];
         animalTypes.forEach(type => {
-            for (let i = 0; i < 2; i++) {
-                const x = Math.floor(Math.random() * this.gridWidth);
-                const y = Math.floor(Math.random() * this.gridHeight);
-                if (this.grid[y][x].isValidTile) {
-                    this.spawnCreature(x, y, type, 3);
+            const count = this.worldSize === 'huge' ? 3 : (this.worldSize === 'large' ? 2 : 1);
+            for (let i = 0; i < count; i++) {
+                let x, y, found = false;
+                for (let attempts = 0; attempts < 10; attempts++) {
+                    x = Math.floor(Math.random() * this.gridWidth);
+                    y = Math.floor(Math.random() * this.gridHeight);
+                    const tile = this.grid[y][x];
+                    // Eagles can fly over mountains, others need valid land
+                    if (type === 'eagle') {
+                        if (tile.isValidTile && tile.type !== 'water') found = true;
+                    } else {
+                        if (tile.isValidTile && tile.type !== 'water' && tile.type !== 'mountain') found = true;
+                    }
+                    if (found) break;
                 }
+                if (found) this.spawnCreature(x, y, type, 3);
             }
         });
 
-        // Spawn fish in water
-        for (let i = 0; i < 5; i++) {
+        // Spawn fish in water - optimized for performance
+        const fishCount = this.worldSize === 'huge' ? 8 : (this.worldSize === 'large' ? 5 : 3);
+        for (let i = 0; i < fishCount; i++) {
             let x, y;
             for (let attempts = 0; attempts < 10; attempts++) {
                 x = Math.floor(Math.random() * this.gridWidth);
@@ -688,6 +1013,42 @@ class WorldboxGame {
             }
             if (this.grid[y][x].type === 'water') {
                 this.spawnCreature(x, y, 'fish', 4);
+            }
+        }
+
+        // Spawn initial vehicles on roads - balanced for performance
+        const vehicleCount = this.worldSize === 'huge' ? 2 : 1;
+        for (let i = 0; i < vehicleCount; i++) {
+            let x, y, found = false;
+            for (let attempts = 0; attempts < 15; attempts++) {
+                x = Math.floor(Math.random() * this.gridWidth);
+                y = Math.floor(Math.random() * this.gridHeight);
+                if (this.grid[y][x].type === 'road' || this.grid[y][x].type === 'grass') {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                const vehicleTypes = ['car', 'boat'];
+                this.spawnVehicle(x, y, vehicleTypes[i % 2]);
+            }
+        }
+
+        // Spawn initial weapons scattered across map - optimized for performance
+        const weaponCount = this.worldSize === 'huge' ? 4 : (this.worldSize === 'large' ? 3 : 2);
+        for (let i = 0; i < weaponCount; i++) {
+            let x, y, found = false;
+            for (let attempts = 0; attempts < 10; attempts++) {
+                x = Math.floor(Math.random() * this.gridWidth);
+                y = Math.floor(Math.random() * this.gridHeight);
+                if (this.grid[y][x].isValidTile && this.grid[y][x].type !== 'water') {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                const weaponTypes = ['sword', 'axe', 'bow'];
+                this.spawnWeapon(x, y, weaponTypes[i % 3]);
             }
         }
     }
@@ -732,14 +1093,16 @@ class WorldboxGame {
                 // Check terrain type with aquatic restrictions
                 const nextTile = this.grid[nextTileY][nextTileX];
                 const isAquatic = c.type === 'fish';
+                const isFlying = c.type === 'eagle';
                 
-                if (nextTile.type === 'mountain') {
-                    canMove = false; // Can't walk through mountains
+                if (nextTile.type === 'mountain' && !isFlying) {
+                    canMove = false; // Can't walk through mountains (unless flying)
                 } else if (nextTile.type === 'water') {
-                    // Only aquatic creatures can move through water
-                    canMove = isAquatic;
+                    // Only aquatic and flying creatures can move through water
+                    canMove = isAquatic || isFlying;
                 } else if (isAquatic) {
                     // Aquatic creatures can only move through water
+                    canMove = false;
                     canMove = false;
                 }
             }
@@ -748,6 +1111,11 @@ class WorldboxGame {
             if (canMove) {
                 c.x = nextX;
                 c.y = nextY;
+                
+                // Play creature sound occasionally when zoomed in
+                if (Math.random() < 0.01 && this.zoom >= 1.5) {
+                    this.soundManager.playCreatureSound(this.zoom, c.type);
+                }
             } else {
                 // Pick a new random direction if blocked
                 c.direction = Math.random() * Math.PI * 2;
@@ -757,8 +1125,8 @@ class WorldboxGame {
             c.x = Math.max(0, Math.min(this.gridWidth - 1, c.x));
             c.y = Math.max(0, Math.min(this.gridHeight - 1, c.y));
 
-            // Death conditions
-            if (c.energy <= 0 || c.age > 1000 || c.health <= 0) {
+            // Death conditions - only die if health is depleted, NOT from age or energy
+            if (c.health <= 0) {
                 this.creatures.splice(i, 1);
                 continue;
             }
@@ -774,6 +1142,12 @@ class WorldboxGame {
 
             if (tile.type === 'lava') {
                 c.health -= 10; // Lava damage
+            }
+            
+            // Apply biome effects
+            const biome = this.biomeSystem.getBiomeAt(this, terrainX, terrainY);
+            if (biome) {
+                this.biomeSystem.applyBiomeEffects(c, biome, this);
             }
 
             // Reproduction
@@ -793,6 +1167,40 @@ class WorldboxGame {
 
         // Update buildings (humanoids build)
         this.updateBuildings();
+
+        // Update vehicles (move around)
+        this.vehicles.forEach(v => {
+            v.x += Math.cos(v.direction) * v.speed;
+            v.y += Math.sin(v.direction) * v.speed;
+
+            // Random direction change
+            if (Math.random() < 0.02) {
+                v.direction = Math.random() * Math.PI * 2;
+            }
+
+            // Bounce off boundaries
+            if (v.x < 0 || v.x >= this.gridWidth) v.direction = Math.PI - v.direction;
+            if (v.y < 0 || v.y >= this.gridHeight) v.direction = -v.direction;
+        });
+
+        // Update weapons (can be picked up by creatures)
+        for (let i = this.weapons.length - 1; i >= 0; i--) {
+            const w = this.weapons[i];
+            w.age++;
+
+            // Check if any humanoid is near weapon and pick it up
+            for (let j = 0; j < this.creatures.length; j++) {
+                const c = this.creatures[j];
+                if (['human', 'elf', 'dwarf', 'orc', 'undead'].includes(c.type)) {
+                    const dist = Math.hypot(c.x - w.x, c.y - w.y);
+                    if (dist < 1.5) {
+                        c.weapon = w.type;  // Equip weapon
+                        this.weapons.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+        }
 
         // Random mob spawning
         if (this.updateCounter % 120 === 0) { // Spawn check every 2 seconds
@@ -850,9 +1258,38 @@ class WorldboxGame {
         // Update year counter
         if (this.updateCounter % 60 === 0) {
             this.year++;
+            
+            // Update kingdoms
+            this.civSystem.kingdoms.forEach(kingdom => {
+                // Update population count
+                kingdom.population = this.creatures.filter(c => c.kingdom === kingdom.id).length;
+                
+                // Happiness changes based on population and tech
+                kingdom.happiness = Math.max(0, Math.min(100, kingdom.happiness + (kingdom.techLevel - 2)));
+                
+                // Resource production based on buildings and tech
+                kingdom.resources.food += kingdom.techLevel * 10;
+                kingdom.resources.gold += kingdom.techLevel * 5;
+                kingdom.resources.wood += kingdom.techLevel * 8;
+            });
+            
+            // Diplomacy changes
+            for (let i = 0; i < this.civSystem.kingdoms.length; i++) {
+                for (let j = i + 1; j < this.civSystem.kingdoms.length; j++) {
+                    const k1 = this.civSystem.kingdoms[i];
+                    const k2 = this.civSystem.kingdoms[j];
+                    
+                    // Random relation changes
+                    if (Math.random() < 0.3) {
+                        const change = (Math.random() - 0.5) * 10;
+                        this.civSystem.updateDiplomacy(k1.id, k2.id, change);
+                    }
+                }
+            }
         }
 
         this.updateStats();
+        this.updatePowerCooldowns();
     }
 
     updateStats() {
@@ -892,19 +1329,32 @@ class WorldboxGame {
     }
 
     render() {
+        // Increment animation frame
+        this.animationFrame = (this.animationFrame + 1) % 12; // 12-frame cycle
+        
+        // Play/stop background music based on zoom
+        this.soundManager.playBackgroundMusic(this.zoom);
+        
         // Clear canvas
         this.ctx.fillStyle = '#0a0a0a';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Save context for zoom
+        this.ctx.save();
+        
+        // Apply zoom transform with camera offset
+        this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.scale(this.zoom, this.zoom);
+        this.ctx.translate(-this.canvas.width / (2 * this.zoom) + this.cameraX, -this.canvas.height / (2 * this.zoom) + this.cameraY);
 
         // Draw grid
         for (let y = 0; y < this.gridHeight; y++) {
             for (let x = 0; x < this.gridWidth; x++) {
                 const tile = this.grid[y][x];
                 
-                // For non-rectangular shapes, draw void outside valid tiles
+                // Draw water for non-rectangular shapes outside valid tiles
                 if (!tile.isValidTile) {
-                    this.ctx.fillStyle = '#0a0a0a';
-                    this.ctx.fillRect(x * this.tileSize, y * this.tileSize, this.tileSize, this.tileSize);
+                    this.drawWaterTile(x, y);
                     continue;
                 }
 
@@ -919,13 +1369,17 @@ class WorldboxGame {
             }
         }
 
-        // Draw creatures
+        // Draw creatures with animation
         this.creatures.forEach(c => {
+            const animFrame = this.animationFrame;
+            const offsetX = Math.sin(animFrame * Math.PI / 6) * 0.5;
+            const offsetY = Math.cos(animFrame * Math.PI / 6) * 0.3;
+            
             const sprite = this.spriteGen.getSprite(c.type);
             this.ctx.drawImage(
                 sprite,
-                Math.floor(c.x) * this.tileSize,
-                Math.floor(c.y) * this.tileSize,
+                Math.floor(c.x) * this.tileSize + offsetX,
+                Math.floor(c.y) * this.tileSize + offsetY,
                 this.tileSize,
                 this.tileSize
             );
@@ -934,8 +1388,8 @@ class WorldboxGame {
             if (c.health < 50) {
                 this.ctx.fillStyle = '#FF0000';
                 this.ctx.fillRect(
-                    Math.floor(c.x) * this.tileSize,
-                    Math.floor(c.y) * this.tileSize - 3,
+                    Math.floor(c.x) * this.tileSize + offsetX,
+                    Math.floor(c.y) * this.tileSize + offsetY - 3,
                     (this.tileSize * c.health) / 100,
                     2
                 );
@@ -949,8 +1403,8 @@ class WorldboxGame {
                 sprite,
                 b.x * this.tileSize,
                 b.y * this.tileSize,
-                this.tileSize,
-                this.tileSize
+                this.tileSize * 2,
+                this.tileSize * 2
             );
 
             // Draw building label above
@@ -964,6 +1418,34 @@ class WorldboxGame {
                     b.y * this.tileSize - 3
                 );
             }
+        });
+
+        // Draw vehicles
+        this.vehicles.forEach(v => {
+            const sprite = this.spriteGen.getSprite(v.type);
+            this.ctx.save();
+            this.ctx.translate(v.x * this.tileSize + this.tileSize / 2, v.y * this.tileSize + this.tileSize / 2);
+            this.ctx.rotate(v.direction);
+            this.ctx.drawImage(
+                sprite,
+                -this.tileSize / 2,
+                -this.tileSize / 2,
+                this.tileSize,
+                this.tileSize
+            );
+            this.ctx.restore();
+        });
+
+        // Draw weapons
+        this.weapons.forEach(w => {
+            const sprite = this.spriteGen.getSprite(w.type);
+            this.ctx.drawImage(
+                sprite,
+                w.x * this.tileSize,
+                w.y * this.tileSize,
+                this.tileSize,
+                this.tileSize
+            );
         });
 
         // Draw particles
@@ -982,6 +1464,9 @@ class WorldboxGame {
             }
             this.ctx.fillRect(p.x * this.tileSize + 4, p.y * this.tileSize + 4, 8, 8);
         });
+        
+        // Restore context from zoom
+        this.ctx.restore();
 
         // Update FPS
         this.frameCount++;
@@ -991,7 +1476,44 @@ class WorldboxGame {
             this.frameCount = 0;
             this.lastFpsTime = now;
         }
-        document.getElementById('fpsInfo').textContent = `FPS: ${this.fps}`;
+        document.getElementById('fpsInfo').textContent = `FPS: ${this.fps} | Zoom: ${this.zoom.toFixed(1)}x`;
+    }
+
+    // Draw static water tile for void areas
+    drawWaterTile(x, y) {
+        // Use base pattern that doesn't animate (position-based only)
+        const waterShades = ['#1565C0', '#1976D2', '#1E88E5', '#2196F3'];
+        const shade = waterShades[(x + y) % waterShades.length];
+        
+        this.ctx.fillStyle = shade;
+        this.ctx.fillRect(x * this.tileSize, y * this.tileSize, this.tileSize, this.tileSize);
+        
+        // Draw static wave pattern based on position
+        this.ctx.fillStyle = '#0D47A1';
+        const wavePattern = (x + y) % 4;
+        for (let i = 0; i < 4; i++) {
+            const offset = (i + wavePattern) % 4;
+            this.ctx.fillRect(x * this.tileSize, y * this.tileSize + offset * 4, this.tileSize, 2);
+        }
+    }
+
+    createExplosionParticles(x, y, count = 10) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 3 + 2;
+            
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 60,
+                maxLife: 60,
+                type: 'explosion',
+                size: Math.random() * 2 + 1,
+                color: '#FF6600'
+            });
+        }
     }
 
     togglePause() {
